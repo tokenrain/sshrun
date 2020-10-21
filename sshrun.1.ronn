@@ -1,0 +1,155 @@
+# sshrun(1) -- concurrent runs of ssh, scp, rsync
+
+## SYNOPSIS
+
+**sshrun** [**-ai**] [**-h** hosts_file] [**-H** hosts_list] [**-p** parallelism]
+           [**-t** timeout] [**-o=**opts] [**-s** ssh_opts] [**-y** identity] [**-u** user]
+           [**-d** dir] [**--head**=num] [**--tail**=num] [--no-status] [**--help**] command...
+
+**scprun** [**-ai**] [**-h** hosts_file] [**-H** hosts_list] [**-p** parallelism]
+           [**-t** timeout] [**-o=**opts] [**-s** ssh_opts] [**-y** identity] [**-u** user]
+           [**-d** dir] [**--head**=num] [**--tail**=num] [--no-status] [**--help**] src dir
+
+**rsyncrun** [**-ai**] [**-h** hosts_file] [**-H** hosts_list] [**-p** parallelism]
+             [**-t** timeout] [**-o=**opts] [**-s** ssh_opts] [**-y** identity] [**-u** user]
+             [**-d** dir] [**--head**=num] [**--tail**=num] [--no-status] [**--help**] src dir
+
+## DESCRIPTION
+
+Three tools that emulate the fantastic parallel-* set from
+[](https://code.google.com/archive/p/parallel-ssh/)
+
+**sshrun** allows for the concurrent run of a command(s) across multiple
+hosts with tunable parallelism and timeout vaules. Options allow you to
+customize the ssh command and save output to persistent storage.
+
+**scprun** allows for the concurrent scp of dir(s)|file(s) from one
+host to many hosts with tunable parallelism and timeout vaules. Options
+allow you to customize the scp and ssh command and save output to
+persistent storage.
+
+**rsyncrun** allows for the concurrent rsync of dir(s)|file(s) from one
+host to many hosts with tunable parallelism and timeout vaules. Options
+allow you to customize the rsync and ssh command and save output to
+persistent storage.
+
+## OPTIONS
+
+`-h`, `--hosts_file=`
+
+newline|space|tab delimited text file containing a list of target hosts
+to act upon.
+
+targets can be formated as host | user@host | host:port | user@host:port
+
+`-H`, `--hosts_list=`
+
+space|comma delimited list of target hosts to act upon.
+
+targets can be formated as host | user@host | host:port | user@host:port
+  
+`-p`, `--parallel= `
+  
+The number of concurrent runs executing at any one time. (default: 16)
+  
+`-t`, `--timeout`
+  
+The max amount of time in ***seconds*** any single run has to compelete
+(default: 15)
+  
+`-o`, `--opts=`
+  
+A space|comma delimited list of options to pass to the ssh, scp, or
+rsync command. Options in the Key=Value form that are part of the
+ssh_config set should ***NOT*** be specified here.
+  
+`-s`, `--ssh_opts=`
+  
+A space or comma delimited list of ssh client options in the Key=Value
+form that are part of the ssh_config set.
+    
+`-a`, `--archive`
+
+Pass the archive (-a, --archive) flag to rsync.
+    
+`-y`, `--identity=`
+
+Specify the path the identity file to be used for ssh authentication.
+
+`-u`, `--user=`
+  
+Specify the username to be used by ssh for login to the remote hosts.
+  
+`-d`, `--dir=`
+  
+Specify the base path to where persistent stdout and stderr logs will be
+written for each run. The full path to the logs will be:
+
+dir/(ssh|scp|rsync)run-epoch/host-stdout
+dir/(ssh|scp|rsync)run-epoch/host-stderr
+  
+`-i`, `--inline`
+  
+Display stdout and stderr of each run inline after the status line.
+  
+`--head=`
+  
+Display the first # of bytes inline after the status line. If the run
+exited 0 then the bytes are taken from stdout else they are taken from
+stderr. --head can not be used if --tail or --inline have been
+specified.
+    
+`--tail=`
+  
+Display the last # of bytes inline after the status line. If the run
+exited 0 then the bytes are taken from stdout else they are taken from
+stderr. --head can not be used if --head or --inline have been
+specified.
+
+`--no-status`
+  
+Do not print the status of each run to stdout.
+
+`--debug`
+
+Print debug output to stderr during the run.
+  
+`--help`
+
+## ENVIORNMENT
+
+`SSH_CMD`
+  
+The path to the binary to use for ssh instead of the one in $PATH
+
+`SCP_CMD`
+  
+The path to the binary to use for scp instead of the one in $PATH
+
+`RSYNC_CMD`
+
+The path to the binary to use for rsync instead of the one in $PATH
+
+## EXAMPLES
+
+sshrun -h /tmp/hosts.txt -p 32 -t 30 --head=80 uptime
+
+sshrun -H "host1 host2 host3" --opts="-A -x" --ssh_opts="BatchMode=yes ForwardX11=no" -t 30 'command1 && command2'
+
+scprun -h /tmp/hosts.txt --opts="-p" /tmp/file.txt /tmp/
+
+scprun -h /tmp/hosts.txt --opts="-p -r" /tmp/dir1 /tmp/
+
+rsyncrun -H "host1 host2 host3" -a --opts"-H" --ssh_opts="BatchMode=yes" /var/tmp/dir1 /var/tmp/
+
+## COPYRIGHT
+
+Apache-2.0 - https://www.apache.org/licenses/LICENSE-2.0
+
+## AUTHORS
+
+Mark Selby <mselby@tokenrain.net>
+
+## SEE ALSO
+
+ssh(1), ssh_config(5), scp(1), rsync(1)
